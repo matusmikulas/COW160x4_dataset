@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    restart: unless-stopped
+
+    # HTTP: 8123, Native client: 9000 :contentReference[oaicite:1]{index=1}
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+    # Recommended ulimit for ClickHouse :contentReference[oaicite:2]{index=2}
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+    # Persistent storage + logs + optional config + init scripts :contentReference[oaicite:3]{index=3}
+    volumes:
+      - ./ch_data:/var/lib/clickhouse
+      - ./ch_logs:/var/log/clickhouse-server
+      - ./config.d:/etc/clickhouse-server/config.d
+      - ./users.d:/etc/clickhouse-server/users.d
+        #      - ./initdb:/docker-entrypoint-initdb.d
+
+    # Create DB/user on first start (recommended vs exposing default user) :contentReference[oaicite:4]{index=4}
+    environment:
+      CLICKHOUSE_DB: "default"
+      CLICKHOUSE_USER: "ch_user"
+      CLICKHOUSE_PASSWORD: "ch_pass_change_me"
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+
+    # Optional capabilities (uncomment only if you need them) :contentReference[oaicite:5]{index=5}
+    # cap_add:
+    #   - SYS_NICE
+    #   - NET_ADMIN
+    #   - IPC_LOCK
+
+  # Optional: a client container you can run on-demand:
+  # docker compose run --rm clickhouse-client
+  clickhouse-client:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-client
+    depends_on:
+      - clickhouse
+    entrypoint: ["clickhouse-client"]
+    command: ["--host=clickhouse", "--user=ch_user", "--password=ch_pass_change_me"]
+    profiles: ["tools"
