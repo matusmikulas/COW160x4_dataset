@@ -92,7 +92,7 @@ Query for session completeness verification:
 ```sql
 SELECT
     count() AS total_sessions
-FROM session_aggregation_shifted
+FROM session_aggregation
 WHERE
     last_seen <= toDateTime64('2025-08-17 16:05:24.407581', 6, 'UTC')
     AND cnt_session_connect > 0
@@ -106,7 +106,7 @@ SELECT
     countIf(cnt_session_connect = 0 AND cnt_session_closed > 0) AS closed_only,
     countIf(cnt_session_connect > 0 AND cnt_session_closed > 0) AS connect_and_closed,
     countIf(cnt_session_connect = 0 AND cnt_session_closed = 0) AS neither_connect_nor_closed
-FROM session_aggregation_shifted
+FROM session_aggregation
 WHERE
     last_seen <= toDateTime64('2025-08-17 16:05:24.407581', 6, 'UTC')
     AND (cnt_direct_tcpip_request > 0 OR cnt_direct_tcpip_data > 0;
